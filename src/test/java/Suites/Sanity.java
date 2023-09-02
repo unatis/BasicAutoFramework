@@ -8,7 +8,6 @@ import org.junit.jupiter.api.*;
 
 public class Sanity {
     private static String startURL = "";
-    private static String environment = "";
     private static Common common = null;
 
     //To run suites in parallel
@@ -17,13 +16,13 @@ public class Sanity {
     @BeforeAll
     public static void setup(){
         startURL = Config.getProperty("start.url");
-        environment = System.getenv("environment");
 
         common = new Common();
     }
 
     @BeforeEach
     public void init(){
+
         common.LaunchBrowser(Common.Browser.CHROME);
     }
 
@@ -45,6 +44,7 @@ public class Sanity {
 
     @AfterEach
     public void teardown() {
+
         common.CloseBrowser();
     }
 

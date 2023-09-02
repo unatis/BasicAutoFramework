@@ -7,7 +7,6 @@ import org.junit.jupiter.api.*;
 
 public class Regression {
     private static String startURL = "";
-    private static String environment = "";
     private static Common common = null;
 
     //To run suites in parallel
@@ -16,7 +15,6 @@ public class Regression {
     @BeforeAll
     public static void setup(){
         startURL = Config.getProperty("start.url");
-        environment = System.getenv("environment");
 
         common = new Common();
     }

@@ -1,13 +1,22 @@
 package infra.Common;
 
 import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.remote.AndroidMobileCapabilityType;
+import io.appium.java_client.remote.MobileCapabilityType;
+import io.appium.java_client.remote.MobilePlatform;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
+import java.io.File;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +44,6 @@ public class Common {
 
     private WebDriver driver = null;
     private WebDriverWait wait = null;
-
     private AppiumDriver mDriver = null;
 
     public String LaunchBrowser(Common.Browser browser){
@@ -126,9 +134,15 @@ public class Common {
     public void CloseBrowser(){
 
         try{
-            driver.quit();
-            Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
-            Report("Browser "+cap.getBrowserName()+ " version " + (String)cap.getCapability("browserVersion") + " closed successfully");
+            if(driver != null)
+            {
+                driver.quit();
+                Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
+                Report("Browser "+cap.getBrowserName()+ " version " + (String)cap.getCapability("browserVersion") + " closed successfully");
+            }else{
+                Report("Browser driver is null");
+            }
+
         }catch(Exception e){
             Report(e.getMessage(), Common.MessageColor.RED);
         }
@@ -181,6 +195,18 @@ public class Common {
 
     }
 
+    public WebDriver getMobileDriver(){
+
+        try{
+            return mDriver;
+
+        } catch(Exception e){
+            Report(e.getMessage(), Common.MessageColor.RED);
+            return null;
+        }
+
+    }
+
     public WebDriverWait getDriverWait(){
 
         try{
@@ -213,4 +239,130 @@ public class Common {
     public boolean isElementVisible(String cssLocator) {
         return driver.findElement(By.cssSelector(cssLocator)).isDisplayed();
     }
+
+    public void LaunchEmulator(String DeviceName, String DeviceID) {
+
+        Process process;
+
+        try {
+
+            String emulatorLocation = getAppLocation("emulator");
+            //String emulatorLocation = Paths.get("/Library/Android/sdk/tools/emulator").toAbsolutePath().toString();
+
+            //builder = new ProcessBuilder("/bin/sh", "-c", emulatorLocation + " -avd " + DeviceName);
+            process = Runtime.getRuntime().exec(emulatorLocation + " -avd " + DeviceName);
+            process.waitFor(20, TimeUnit.SECONDS);
+
+            Report("Emulator android running");
+        } catch (Exception e) {
+
+            Report(e.getMessage(), MessageColor.RED);
+        }
+
+    }
+
+    public void stopEmulator(String DeviceID) {
+
+        Process process;
+
+        try {
+
+            String emulatorLocation = getAppLocation("emulator");
+
+            process = Runtime.getRuntime().exec("adb -s "+DeviceID+" emu kill");
+            process.waitFor(20, TimeUnit.SECONDS);
+
+            Report("Emulator android killed");
+        } catch (Exception e) {
+
+            Report(e.getMessage(), MessageColor.RED);
+        }
+
+    }
+
+    public void LaunchApp(String PackageName, String ActivityName, String DeviceName, String DeviceID, String PlatformVersion) {
+        try {
+            mDriver = null;
+
+            String ApplicationPath = "";
+
+            String version;
+
+            //ApplicationPath = Paths.get("Tools").toAbsolutePath().toString() + File.separator+ApplicationFileName;
+
+            URL url = new URL("http://127.0.0.1:4723/wd/hub");
+
+            DesiredCapabilities dc = new DesiredCapabilities();
+            dc.setCapability(MobileCapabilityType.DEVICE_NAME, DeviceName);
+            dc.setCapability(MobileCapabilityType.UDID, DeviceID);
+            dc.setCapability(MobileCapabilityType.PLATFORM_NAME, MobilePlatform.ANDROID);
+            dc.setCapability("platformVersion", PlatformVersion);
+            dc.setCapability("ensureWebviewsHavePages", true);
+            dc.setCapability("usePrebuiltWDA", true);
+
+            dc.setCapability(AndroidMobileCapabilityType.AVD_LAUNCH_TIMEOUT, 180000);
+            dc.setCapability(AndroidMobileCapabilityType.ANDROID_DEVICE_READY_TIMEOUT, 180);
+
+            dc.setCapability(MobileCapabilityType.NO_RESET, true);//clears the app data, such as its cache
+
+            //dc.setCapability(AndroidMobileCapabilityType.SYSTEM_PORT, String.valueOf(Port));
+            dc.setCapability(MobileCapabilityType.NEW_COMMAND_TIMEOUT, 10800); //keep appium session alive for 3 hours (in seconds)
+            dc.setCapability(AndroidMobileCapabilityType.APP_PACKAGE, PackageName);
+            dc.setCapability("appActivity", ActivityName);
+
+            mDriver = new AndroidDriver(url, dc);
+
+            mDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+
+        } catch (Exception ex) {
+            Report(ex.getMessage(), MessageColor.RED);
+        }
+    }
+
+    public void closeApp() {
+        try {
+            mDriver.quit();
+
+        } catch (Exception ex) {
+            Report(ex.getMessage(), MessageColor.RED);
+        }
+    }
+
+    public void await(long seconds) {
+        try {
+            Thread.sleep(seconds * 1000);
+            Report("Waiting for " +seconds+ " seconds");
+        } catch (Exception ex) {
+            Report(ex.getMessage(), MessageColor.RED);
+        }
+    }
+    private static String getAppLocation(String AppName) {
+        String tmp = "";
+
+        try {
+
+            switch (AppName) {
+                case "appium":
+                    tmp = "/usr/local/bin/appium";
+                    break;
+                case "emulator":
+                    //tmp = System.getProperty("user.home") + "/Library/Android/sdk/tools/emulator";
+                      tmp = "C:\\Documents and Settings\\ygpan\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe";
+                    //tmp = "C:\\emulator\\emulator.exe";
+                    break;
+                case "adb":
+                    tmp = System.getProperty("user.home") + "/Library/Android/sdk/platform-tools/adb";
+                    break;
+                default:
+                    tmp = "";
+            }
+
+        } catch (Exception e) {
+            Report(e.getMessage(), MessageColor.RED);
+        }
+
+        return tmp;
+    }
+
 }
