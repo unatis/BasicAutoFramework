@@ -21,7 +21,7 @@ public class Regression {
 
     @BeforeEach
     public void init(){
-        common.LaunchBrowser(Common.Browser.CHROME);
+        common.LaunchBrowser(Common.Browser.FIREFOX);
     }
 
     @Test

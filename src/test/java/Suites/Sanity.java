@@ -12,7 +12,7 @@ public class Sanity {
 
     //To run suites in parallel
     //mvn clean test -Dtest=Suites.Sanity,Suites.Regression
-
+    //in pom set true  junit.jupiter.execution.parallel.enabled=false
     @BeforeAll
     public static void setup(){
         startURL = Config.getProperty("start.url");
@@ -23,7 +23,7 @@ public class Sanity {
     @BeforeEach
     public void init(){
 
-        common.LaunchBrowser(Common.Browser.CHROME);
+        common.LaunchBrowser(Common.Browser.FIREFOX);
     }
 
     @Test

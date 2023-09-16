@@ -8,10 +8,10 @@ import org.openqa.selenium.support.PageFactory;
 
 public class MainPage {
 
-    @FindBy(id = "section_1")
+    @FindBy(tagName = "main")
     WebElement mainPage;
 
-    @FindBy(linkText = "Let's begin")
+    @FindBy(id = "letsbeginwork")
     WebElement letsBeginButton;
 
     private Common common = null;
@@ -25,7 +25,9 @@ public class MainPage {
 
         try {
 
-            common.isElementPresent(By.id("content"));
+            if(!common.isElementPresent(By.tagName("main"))){
+                common.Report("Main_Page not found", Common.MessageColor.RED);
+            }
 
         } catch (Exception e) {
             common.Report(e.getMessage(), Common.MessageColor.RED);

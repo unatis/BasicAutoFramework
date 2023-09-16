@@ -267,8 +267,6 @@ public class Common {
 
         try {
 
-            String emulatorLocation = getAppLocation("emulator");
-
             process = Runtime.getRuntime().exec("adb -s "+DeviceID+" emu kill");
             process.waitFor(20, TimeUnit.SECONDS);
 
