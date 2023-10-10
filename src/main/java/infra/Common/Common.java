@@ -76,7 +76,7 @@ public class Common {
 
             driver.manage().window().maximize();
             wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
 
             Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
             Report("Browser "+cap.getBrowserName()+ " version " + (String)cap.getCapability("browserVersion") + " running successfully");
